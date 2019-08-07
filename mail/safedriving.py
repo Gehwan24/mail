@@ -33,9 +33,26 @@ def go():
 
 	#MIMEImage로 변환 
 	fp = open(filename, 'rb')
-	img = MIMEImage(fp.read())
+	context = fp.read()
+	img = MIMEImage(context)
+	context = str(context)
 	fp.close()
-	
-	send_email.send("도로교통공단 안전운전 통합민원",dict=[], attach_img=img)
+
+	is_write = True
+	#이전 시간에 보냈는지 확인
+	with open('safedriving.txt', mode='a+', encoding='utf8') as title_file:
+		title_file.seek(0)
+		templine = title_file.read()
+		#파일에 내용이 없으면 False
+		if not templine: 
+			is_write = False
+		#기존에 읽었으면 True
+		if( context == templine):
+			is_write = True
+				
+	if is_write is False : 
+		with open('safedriving.txt', mode='w', encoding='utf8') as title_file:
+			title_file.write(context)
+		send_email.send("도로교통공단 안전운전 통합민원",dict=[], attach_img=img)
 
 	driver.quit()
