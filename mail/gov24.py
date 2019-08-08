@@ -9,21 +9,29 @@ import re
 #공지사항 내용 중 기간관련 문자열 추출 식
 def date_nomalization(item) :
 	#1996.03.14 와 같은 내용 추출(연 월 일)
-	match = re.search(r"\d{4}\.\d{1,2}\.\d{1,2}",item)
-	
+	match = re.search(r"\d{2,4}\.\d{1,2}\.\d{1,2}",item)
+	if match is None : 
+		match = re.search(r"\d{2,4}\. \d{1,2}\. \d{1,2}",item)
+		
 	#연 월 일 관련 내용이 존재하지 않을때 다음 조건문에 들어간다
 	if match is None :
 		match = re.search(r"\d{1,2}\.\d{1,2}",item)
+		if match is None : 
+			match = re.search(r"\d{1,2}\. \d{1,2}",item)
+		
 		if match is None :
 			#03.14와 같이 월 일로 표현된 내용 추출
 			return datetime.strptime('9999.12.31','%Y.%m.%d')
 		stop_date = item[match.start():match.end()]
+		stop_date=re.sub(' ','',stop_date)
 		stop_date = datetime.strptime(stop_date,'%m.%d')
 	else:
 		stop_date = item[match.start():match.end()]
+		stop_date=re.sub(' ','',stop_date)
 		stop_date = datetime.strptime(stop_date,'%Y.%m.%d')
 	#일시 datetime 형식으로 문자열 변환한 이후 반환
 	return stop_date
+
 
 def go():
 	print("=" * 25 + "gov24" + "=" * 25)
