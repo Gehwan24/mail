@@ -12,22 +12,27 @@ def date_nomalization(item) :
 	match = re.search(r"\d{2,4}\.\d{1,2}\.\d{1,2}",item)
 	if match is None : 
 		match = re.search(r"\d{2,4}\. \d{1,2}\. \d{1,2}",item)
-		
-	#연 월 일 관련 내용이 존재하지 않을때 다음 조건문에 들어간다
-	if match is None :
-		match = re.search(r"\d{1,2}\.\d{1,2}",item)
-		if match is None : 
-			match = re.search(r"\d{1,2}\. \d{1,2}",item)
-		
+
+		#연 월 일 관련 내용이 존재하지 않을때 다음 조건문에 들어간다
 		if match is None :
-			#03.14와 같이 월 일로 표현된 내용 추출
-			return datetime.strptime('9999.12.31','%Y.%m.%d')
-		stop_date = item[match.start():match.end()]
-		stop_date=re.sub(' ','',stop_date)
-		stop_date = datetime.strptime(stop_date,'%m.%d')
+			match = re.search(r"\d{1,2}\.\d{1,2}",item)
+			if match is None : 
+				match = re.search(r"\d{1,2}\. \d{1,2}",item)		
+
+			if match is None :
+				#03.14와 같이 월 일로 표현된 내용 추출
+				return datetime.strptime('9999.12.31','%Y.%m.%d')
+			else:
+				stop_date = item[match.start():match.end()]
+				stop_date=re.sub(' ','',stop_date)
+				stop_date = datetime.strptime(stop_date,'%m.%d')
+		else :
+			stop_date = item[match.start():match.end()]
+			stop_date=re.sub(' ','',stop_date)
+			stop_date = datetime.strptime(stop_date,'%Y.%m.%d')
+
 	else:
 		stop_date = item[match.start():match.end()]
-		stop_date=re.sub(' ','',stop_date)
 		stop_date = datetime.strptime(stop_date,'%Y.%m.%d')
 	#일시 datetime 형식으로 문자열 변환한 이후 반환
 	return stop_date
@@ -46,7 +51,7 @@ def go():
 	#===================================================#
 	
 	#페이지 접속
-	req = requests.get('https://www.gov.kr/portal/ntcItm')
+	req = requests.get('https://www.gov.kr/portal/ntcItm?Mcode=11186')
 	html = req.text
 	soup = BeautifulSoup(html, 'html.parser')
 
@@ -56,13 +61,12 @@ def go():
 	#제목, 게시일 찾기
 	titles_dates = table.find_all('td', {'class':'m-show'})
 
-
 	#인덱스 홀수는 날짜, 짝수(0포함)는 제목(링크)
 	for i in range(1, len(titles_dates), 2):
 		#메일에 들어갈 내용정보 초기화
 		abort_date = None
-		abort_thing = None
-		abort_why = None
+		abort_thing = "N"
+		abort_why = "N"
 		
 		#HTML 태그 제거
 		string_dates = titles_dates[i].text.strip()
@@ -94,10 +98,11 @@ def go():
 		is_today_new = True
 		#오늘 날짜 문자열 추출
 		today_date=today.strftime("%Y.%m.%d")
+		convert_to_day = convert_to_date.strftime("%Y.%m.%d")
 
 		#오늘날짜의 새로운 공지가 있니?
 		if convert_to_date.year == today.year :
-			if convert_to_date == today_date:
+			if convert_to_day == today_date:
 				is_today_new = True
 			else:
 				is_today_new = False
@@ -110,17 +115,18 @@ def go():
 			templine = title_file.readlines()
 			#파일에 내용이 없으면 break(이미 보낸 내용 X)
 			if not templine: 
-				is_today_new = True	
+				is_write = False
 			else:	
 	 			#기존에 읽었으면 False
 				if title.strip() in str(templine):
 					is_write = False
 		
 		print("is_write : ",is_write)
+		print("is_today_new : ",is_today_new)
 		#이미 읽은 공지는 건너뛰기
 		if is_write is False:
 			continue	
-
+		
 		#오늘 올라온 공지사항인가
 		if is_today_new :
 			for item in utf_content.split("○"):		
@@ -211,7 +217,8 @@ def go():
 			title_file.write(title.strip() + '\n')
 			title_file.close()
 			#메일 및 두레이 전송
-			send_dooray.send("정부24", title, utf_content)
+			data = abort_date +'\n' + abort_thing + '\n' + abort_why
+			send_dooray.send("정부24", title, data)
 			utf_title = title
 			mail_body[utf_title] = abort_date
 			send_email.send("정부24", mail_body)
