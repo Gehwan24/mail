@@ -65,8 +65,8 @@ def go():
 	for i in range(1, len(titles_dates), 2):
 		#메일에 들어갈 내용정보 초기화
 		abort_date = None
-		abort_thing = "N"
-		abort_why = "N"
+		abort_thing = " "
+		abort_why = " "
 		
 		#HTML 태그 제거
 		string_dates = titles_dates[i].text.strip()
@@ -107,6 +107,7 @@ def go():
 			else:
 				is_today_new = False
 		else:
+			is_today_new = False
 			continue
 
 		#이미 보낸 내용인지를 확인하는 부분
@@ -115,7 +116,7 @@ def go():
 			templine = title_file.readlines()
 			#파일에 내용이 없으면 break(이미 보낸 내용 X)
 			if not templine: 
-				is_write = False
+				is_write = True
 			else:	
 	 			#기존에 읽었으면 False
 				if title.strip() in str(templine):
@@ -129,7 +130,8 @@ def go():
 		
 		#오늘 올라온 공지사항인가
 		if is_today_new :
-			for item in utf_content.split("○"):		
+			for item in utf_content.split("○"):	
+				print(item)	
 				#abort_why
 				if "작업사유" in item:
 					abort_why = item[item.find('작업사유'):item.find('※')]+'\n'
@@ -154,19 +156,19 @@ def go():
 				if "중단일시" in item:
 					stop_day =date_nomalization(item)
 					if  (stop_day.day == tomorrow.day and stop_day.month == tomorrow.month) or (stop_day.day == today.day and stop_day.month == today.month) :
-						abort_date = item[item.find("중단일시"):item.find("중단일시")+43]+'\n'
+						abort_date = item[item.find("중단일시"):item.find("중단일시")+45]+'\n'
 				if "작업일시" in item: 
 					stop_day = date_nomalization(item)
 					if  (stop_day.day == tomorrow.day and stop_day.month == tomorrow.month) or (stop_day.day == today.day and stop_day.month == today.month) :
-						abort_date = item[item.find('작업일시'):item.find('작업일시')+43]+'\n'
+						abort_date = item[item.find('작업일시'):item.find('작업일시')+45]+'\n'
 				if "중단 시간" in item and abort_date == "N":
 					stop_day = date_nomalization(item)
 					if  (stop_day.day == tomorrow.day and stop_day.month == tomorrow.month) or (stop_day.day == today.day and stop_day.month == today.month) :
-						abort_date = item[item.find("중단 시간"):item.find("중단 시간")+43]+'\n'
+						abort_date = item[item.find("중단 시간"):item.find("중단 시간")+45]+'\n'
 				if "기간" in item:
 					stop_day = date_nomalization(item)
 					if  (stop_day.day == tomorrow.day and stop_day.month == tomorrow.month) or (stop_day.day == today.day and stop_day.month == today.month) :
-						abort_date = item[item.find("기간"):item.find("기간")+37]+'\n'
+						abort_date = item[item.find("기간"):item.find("기간")+38]+'\n'
 			
 		
 		else :
@@ -195,20 +197,20 @@ def go():
 				if "중단일시" in item:
 					stop_day = date_nomalization(item)
 					if  stop_day.day == tomorrow.day and stop_day.month == tomorrow.month:
-						abort_date = item[item.find("중단일시"):item.find("중단일시")+43]+'\n'
+						abort_date = item[item.find("중단일시"):item.find("중단일시")+45]+'\n'
 
 				if "작업일시" in item: 
 					stop_day = date_nomalization(item)
 					if  stop_day.day == tomorrow.day and stop_day.month == tomorrow.month:
-						abort_date = item[item.find('작업일시'):item.find('작업일시')+43]+'\n'
+						abort_date = item[item.find('작업일시'):item.find('작업일시')+45]+'\n'
 				if "중단 시간" in item and abort_date == "N":
 					stop_day = date_nomalization(item)
 					if  stop_day.day == tomorrow.day and stop_day.month == tomorrow.month:
-						abort_date = item[item.find("중단 시간"):item.find("중단 시간")+43]+'\n'
+						abort_date = item[item.find("중단 시간"):item.find("중단 시간")+45]+'\n'
 				if "기간" in item:
 					stop_day = date_nomalization(item)
 					if  stop_day.day == tomorrow.day and stop_day.month == tomorrow.month:
-						abort_date = item[item.find("기간"):item.find("기간")+37]+'\n'
+						abort_date = item[item.find("기간"):item.find("기간")+38]+'\n'
 			
 		if abort_date :
 			#메일에 보낼 내용이 존재할 때
